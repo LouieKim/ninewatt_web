@@ -29,7 +29,7 @@ app.use('/users', usersRouter);
 app.use(bodyParser.urlencoded({extended:true}));
 app.post('/mic_event', function(req, res){
 	console.log("Click mic");
-	child = exec("sudo node --version", function(error, stdout, stderr){
+	child = exec("sudo omxplayer /home/pi/Demo_sound.wav", function(error, stdout, stderr){
 		console.log(stdout);
 		if(error != null)
 		{
