@@ -8,6 +8,8 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var bodyParser = require('body-parser');
+var exec = require('child_process').exec, child;
+
 var app = express();
 
 // view engine setup
@@ -27,8 +29,13 @@ app.use('/users', usersRouter);
 app.use(bodyParser.urlencoded({extended:true}));
 app.post('/mic_event', function(req, res){
 	console.log("Click mic");
-	var msg = req.body.msg;
-	msg = "thantk";
+	child = exec("sudo node --version", function(error, stdout, stderr){
+		console.log(stdout);
+		if(error != nuill)
+		{
+			console.log(error);;
+		}
+	});
 })
 
 // catch 404 and forward to error handler
