@@ -31,7 +31,7 @@ app.post('/mic_event', function(req, res){
 	console.log("Click mic");
 	child = exec("sudo node --version", function(error, stdout, stderr){
 		console.log(stdout);
-		if(error != nuill)
+		if(error != null)
 		{
 			console.log(error);;
 		}
