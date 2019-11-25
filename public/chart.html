@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="btn_box">
-                    <button>설정</button>
+                    <button id="btn_power">설정</button>
                 </div>
             </div>
         </div>
@@ -276,6 +276,16 @@
                 btn.classList.remove('active');
             }
         })
+
+        $('#btn_power').click( function() {
+			$.ajax({
+			url: 'http://localhost:3000/set_power',
+			dataType: 'json',
+			type: 'POST',
+			data: " ",
+			success: function(){}
+			})
+		})
     </script>
 </body>
 </html>
