@@ -15,7 +15,7 @@
     <div class="app">
         <div class="side_content">
             <div class="side_top">
-                <a href="/"><img src="./images/logo.png" alt=""></a>
+                <a href="/"><img src="./images/ninewatt-logo-3d.gif" alt=""></a>
             </div>
             <div class="side_main">
                 <div class="area_box">
@@ -52,15 +52,6 @@
                         <div class="map_box">
                             <div class="map" id="map">
                                 <!-- <img src="./images/samplemap.png" alt=""> -->
-                            </div>
-                            <div class="map_btn_box">
-                                <button class="btn1">
-                                    <span class="line1"></span>
-                                    <span class="line2"></span>
-                                </button>
-                                <button class="btn2">
-                                    <span class="line1"></span>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -205,124 +196,30 @@
                     .done(function(res) {
                         // 성공 시 동작
                         console.log('성공' , res)
-                        var list = res.human;
-                        var pageCount = 5;
-                        var blockCount = 5;
-                        var totalPage = Math.ceil(list.length / pageCount);
-                        var totalBlock = Math.ceil(totalPage / blockCount);
-                        var pagination = document.getElementById('pagination');  
-                        var tableBox = document.getElementById('table_box').querySelector('tbody');
-                        var renderTable = function(page) {
-                            var startNum = (pageCount * (page - 1));
-                            var endNum = ((pageCount * page) >= list.length) ? list.length : (pageCount * page);
-
-                            var html = '';
-                            var locations = []
-                            for (var index = startNum; index < endNum; index++) {
-                                var date = res.sensor[index].date.split(' ')
-                                var newDate = date[0].split('-')
-                                var newHour = date[1].split(':')
-                                html += "<tr><td class=\"num\">" + list[index].person_id + "</td><td class=\"name\">" + list[index].name + "</td><td class=\"date\">" + newDate[1] + "월 " + newDate[2] + "일 " + newHour[0] + "시 " + newHour[1] + "분</td><td class=\"location\">" + list[index].address + "</td></tr>";
-                                locations.push([list[index].name , list[index].lat , list[index].lng])            
-                            }
-                            // 구글맵 start
-                            var map = new google.maps.Map(document.getElementById('map'), {
-                                zoom: 12,
-                                center: new google.maps.LatLng(locations[0][1],locations[0][2]),
-                                mapTypeId: google.maps.MapTypeId.ROADMAP
-                            });
-
-                            var infowindow = new google.maps.InfoWindow();
-
-                            var marker, i;
-                            for (i = 0; i < locations.length; i++) {  
-                                marker = new google.maps.Marker({
-                                    id:i,
-                                    position: new google.maps.LatLng(locations[i][1], locations[i][2]),
-                                    map: map
-                                });
-
-                                google.maps.event.addListener(marker, 'click', (function(marker, i) {
-                                    return function() {
-                                    infowindow.setContent(locations[i][0]);
-                                    infowindow.open(map, marker);
+                        DataTable(res)
+                        var checkSum = res.checksum;
+                        setInterval(function(){
+                            $.ajax({
+                                url: 'http://ec2-13-125-22-29.ap-northeast-2.compute.amazonaws.com/all.php',
+                                type: 'GET',
+                                data: {
+                                    // 보낼 데이터
+                                },
+                                dataType: 'json'
+                            })
+                                .done(function(res){
+                                    console.log(checkSum)
+                                    console.log(res.checksum)
+                                    if(checkSum !== res.checksum) {
+                                        checkSum = res.checksum
+                                        DataTable(res)
                                     }
-                                })(marker, i));
-                                if(marker){
-                                    marker.addListener('click', function() {
-                                    map.setZoom(15);
-                                    map.setCenter(this.getPosition());
-                                    });
-                                 }
-                            }
-                            // 구글맵 end
-                            
-
-                            tableBox.innerHTML = html;
-                        };
-                        var renderPagination = function(page) {
-                            var block = Math.floor((page-1)/blockCount)+1;
-                            var startPage = ((block-1)*blockCount)+1;
-                            var endPage = ((startPage + blockCount -1) > totalPage) ? totalPage : (startPage + blockCount -1);
-
-                            var paginationHTML = '';
-
-                            if (page !== 1) paginationHTML += "<li><a style='cursor:pointer' class='first_page'>FIRST</a></li>";
-                            if (block !== 1) paginationHTML += "<li><a style='cursor:pointer' class='back_page'>PREV</a></li>   ";
-                            
-
-                            for (var index = startPage; index <= endPage; index++) {
-                                paginationHTML += (parseInt(page) === parseInt(index)) ?
-                                "<li><a class=\"active\">" + index + "</a></li>" : "<li><a style='cursor: pointer' class='go_page' data-value='" + index + "'>" + index + "</a></li>";
-
-                                
+                                     
                                     
-                            }
-
-                            if (block < totalBlock) paginationHTML += "<li><a style='cursor:pointer' class='next_page'>NEXT</a></li>";
-                            if (page < totalPage) paginationHTML += "<li><a style='cursor:pointer' class='last_page'>LAST</a></li>";
-
-                            pagination.innerHTML = paginationHTML;
-                            addEventPagination(startPage, endPage);
-                        };
-                        var renderTableAndPagination = function(page = 1) {
-                            renderTable(page);
-                            renderPagination(page);
-                        };
+                                })
+                        },5000)
                         
-                        var addEventPagination = function(startPage, endPage){
-                            if (!!document.querySelector(".first_page")) {
-                                document.querySelector(".first_page").addEventListener('click', () => {
-                                    renderTableAndPagination(1);
-                                });
-                            }
-
-                            if (!!document.querySelector(".back_page")) {
-                                document.querySelector(".back_page").addEventListener('click', () => {
-                                    renderTableAndPagination(startPage-1);
-                                });
-                            }
-
-                            document.querySelectorAll(".go_page").forEach(goPage => {
-                                goPage.addEventListener('click', e => {
-                                    renderTableAndPagination(parseInt(e.target.getAttribute('data-value')));
-                                });
-                            });
-
-                            if (!!document.querySelector(".next_page")) {
-                                document.querySelector(".next_page").addEventListener('click', () => {
-                                    renderTableAndPagination(endPage + 1);
-                                });
-                            }
-
-                            if (!!document.querySelector(".last_page")) {
-                                document.querySelector(".last_page").addEventListener('click', () => {
-                                    renderTableAndPagination(totalPage);
-                                });
-                            }
-                        };
-
-                        renderTableAndPagination()
+                        
 
                         
                         
@@ -336,9 +233,129 @@
                     }); 
             } 
             AJAX()  
-            setInterval(function(){
-                AJAX()
-            } , 5000)     
+            function DataTable(res) {
+                var list = res.human;
+                var pageCount = 5;
+                var blockCount = 5;
+                var totalPage = Math.ceil(list.length / pageCount);
+                var totalBlock = Math.ceil(totalPage / blockCount);
+                var pagination = document.getElementById('pagination');  
+                var tableBox = document.getElementById('table_box').querySelector('tbody');
+                var renderTable = function(page) {
+                    var startNum = (pageCount * (page - 1));
+                    var endNum = ((pageCount * page) >= list.length) ? list.length : (pageCount * page);
+
+                    var html = '';
+                    var locations = []
+                    for (var index = startNum; index < endNum; index++) {
+                        var date = res.sensor[index].date.split(' ')
+                        var newDate = date[0].split('-')
+                        var newHour = date[1].split(':')
+                        html += "<tr><td class=\"num\">" + list[index].person_id + "</td><td class=\"name\">" + list[index].name + "</td><td class=\"date\">" + newDate[1] + "월 " + newDate[2] + "일 " + newHour[0] + "시 " + newHour[1] + "분</td><td class=\"location\">" + list[index].address + "</td></tr>";
+                        locations.push([list[index].name , list[index].lat , list[index].lng])            
+                    }
+                    // 구글맵 start
+                    var map = new google.maps.Map(document.getElementById('map'), {
+                        zoom: 12,
+                        center: new google.maps.LatLng(locations[0][1],locations[0][2]),
+                        mapTypeControl : false,
+                        streetViewControl: false,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    });
+
+                    var infowindow = new google.maps.InfoWindow();
+
+                    var marker, i;
+                    for (i = 0; i < locations.length; i++) {  
+                        marker = new google.maps.Marker({
+                            id:i,
+                            position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                            map: map
+                        });
+
+                        google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                            return function() {
+                            infowindow.setContent(locations[i][0]);
+                            infowindow.open(map, marker);
+                            }
+                        })(marker, i));
+                        if(marker){
+                            marker.addListener('click', function() {
+                            map.setZoom(15);
+                            map.setCenter(this.getPosition());
+                            });
+                        }
+                    }
+                    // 구글맵 end
+                    tableBox.innerHTML = html;
+                };
+                var renderPagination = function(page) {
+                    var block = Math.floor((page-1)/blockCount)+1;
+                    var startPage = ((block-1)*blockCount)+1;
+                    var endPage = ((startPage + blockCount -1) > totalPage) ? totalPage : (startPage + blockCount -1);
+
+                    var paginationHTML = '';
+
+                    if (page !== 1) paginationHTML += "<li><a style='cursor:pointer' class='first_page'>FIRST</a></li>";
+                    if (block !== 1) paginationHTML += "<li><a style='cursor:pointer' class='back_page'>PREV</a></li>   ";
+                    
+
+                    for (var index = startPage; index <= endPage; index++) {
+                        paginationHTML += (parseInt(page) === parseInt(index)) ?
+                        "<li><a class=\"active\">" + index + "</a></li>" : "<li><a style='cursor: pointer' class='go_page' data-value='" + index + "'>" + index + "</a></li>";
+
+                        
+                            
+                    }
+
+                    if (block < totalBlock) paginationHTML += "<li><a style='cursor:pointer' class='next_page'>NEXT</a></li>";
+                    if (page < totalPage) paginationHTML += "<li><a style='cursor:pointer' class='last_page'>LAST</a></li>";
+
+                    pagination.innerHTML = paginationHTML;
+                    addEventPagination(startPage, endPage);
+                };
+                var renderTableAndPagination = function(page = 1) {
+                    renderTable(page);
+                    renderPagination(page);
+                };
+                
+                var addEventPagination = function(startPage, endPage){
+                    if (!!document.querySelector(".first_page")) {
+                        document.querySelector(".first_page").addEventListener('click', () => {
+                            renderTableAndPagination(1);
+                        });
+                    }
+
+                    if (!!document.querySelector(".back_page")) {
+                        document.querySelector(".back_page").addEventListener('click', () => {
+                            renderTableAndPagination(startPage-1);
+                        });
+                    }
+
+                    document.querySelectorAll(".go_page").forEach(goPage => {
+                        goPage.addEventListener('click', e => {
+                            renderTableAndPagination(parseInt(e.target.getAttribute('data-value')));
+                        });
+                    });
+
+                    if (!!document.querySelector(".next_page")) {
+                        document.querySelector(".next_page").addEventListener('click', () => {
+                            renderTableAndPagination(endPage + 1);
+                        });
+                    }
+
+                    if (!!document.querySelector(".last_page")) {
+                        document.querySelector(".last_page").addEventListener('click', () => {
+                            renderTableAndPagination(totalPage);
+                        });
+                    }
+                };
+                renderTableAndPagination()
+
+            }
+            // setInterval(function(){
+            //     AJAX()
+            // } , 5000)     
         })
     </script>
 </body>

@@ -7,9 +7,6 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
-var bodyParser = require('body-parser');
-var exec = require('child_process').exec, child;
-
 var app = express();
 
 // view engine setup
@@ -26,18 +23,6 @@ app.use('/', indexRouter);
 app.use('/device', indexRouter);
 app.use('/users', usersRouter);
 
-app.use(bodyParser.urlencoded({extended:true}));
-app.post('/mic_event', function(req, res){
-	console.log("Click mic");
-	child = exec("sudo omxplayer /home/pi/Demo_sound.wav", function(error, stdout, stderr){
-		console.log(stdout);
-		if(error != null)
-		{
-			console.log(error);;
-		}
-	});
-})
-
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -53,8 +38,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
-app.listen(3000, () => {
-console.log("3000 port")});
 
 module.exports = app;
